@@ -1,0 +1,93 @@
+{
+    "mcpServers": {
+        "data_ingest": {
+            "command": "python",
+            "args": [
+                "-m",
+                "data_engineering_optimizer.data_ingest_mcp_server"
+            ],
+            "disabled": false,
+            "timeout": 15.0,
+            "retries": 3,
+            "env": {
+                "PIPELINE_DB_PATH": "/app/data/pipeline_optimizer.db",
+                "LOG_LEVEL": "INFO"
+            },
+            "autoApprove": []
+        },
+        "pipeline_builder": {
+            "command": "python", 
+            "args": [
+                "-m",
+                "data_engineering_optimizer.pipeline_builder_mcp_server"
+            ],
+            "disabled": false,
+            "timeout": 30.0,
+            "retries": 2,
+            "env": {
+                "AIRFLOW_HOME": "/opt/airflow",
+                "AIRFLOW_API_URL": "http://airflow-webserver:8080/api/v1"
+            },
+            "autoApprove": []
+        },
+        "dag_performance": {
+            "command": "python",
+            "args": [
+                "-m", 
+                "data_engineering_optimizer.dag_performance_mcp_server"
+            ],
+            "disabled": false,
+            "timeout": 20.0,
+            "retries": 3,
+            "env": {
+                "METRICS_DB_PATH": "/app/data/performance_metrics.db",
+                "PROMETHEUS_URL": "http://prometheus:9090"
+            },
+            "autoApprove": []
+        },
+        "metadata_catalog": {
+            "command": "python",
+            "args": [
+                "-m",
+                "data_engineering_optimizer.metadata_catalog_mcp_server"
+            ],
+            "disabled": false,
+            "timeout": 25.0,
+            "retries": 2,
+            "env": {
+                "METADATA_STORE_URL": "postgresql://user:pass@metadata-db:5432/catalog",
+                "LINEAGE_BACKEND": "datahub"
+            },
+            "autoApprove": []
+        },
+        "pipeline_orchestration": {
+            "command": "python",
+            "args": [
+                "-m",
+                "data_engineering_optimizer.pipeline_orchestration_mcp_server"
+            ],
+            "disabled": false,
+            "timeout": 45.0,
+            "retries": 2,
+            "env": {
+                "KUBERNETES_CONFIG_PATH": "/app/config/k8s-config.yaml",
+                "CLUSTER_AUTOSCALER_ENABLED": "true",
+                "SLACK_WEBHOOK_URL": "${SLACK_WEBHOOK_URL}",
+                "PAGERDUTY_API_KEY": "${PAGERDUTY_API_KEY}"
+            },
+            "autoApprove": ["reschedule_pipeline", "balance_cluster_load"]
+        },
+        "pipeline_database": {
+            "command": "python",
+            "args": [
+                "data_engineering_optimizer/pipeline_db_server.py"
+            ],
+            "timeout": 10.0,
+            "retries": 3,
+            "env": {
+                "DATABASE_PATH": "/app/data/pipeline_optimizer.db"
+            },
+            "disabled": false
+        }
+    }
+}
